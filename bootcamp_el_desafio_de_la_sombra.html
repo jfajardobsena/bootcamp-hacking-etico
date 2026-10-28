@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Operación CGMLTI: El Desafío de la Sombra | Manual Oficial ADSO</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            950: '#020408',
+                            900: '#030712',
+                            800: '#0a170a',
+                            700: '#112911',
+                            600: '#1a3e1a',
+                            500: '#22c55e',
+                            400: '#4ade80',
+                            300: '#86efac'
+                        }
+                    },
+                    fontFamily: {
+                        mono: ['"Share Tech Mono"', 'Courier New', 'monospace'],
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .font-terminal { font-family: 'Share Tech Mono', monospace; }
+        
+        /* CRT Scanlines Overlay */
+        .scanlines {
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.25) 50%
+            ), linear-gradient(
+                90deg,
+                rgba(255, 0, 0, 0.03),
+                rgba(0, 255, 0, 0.01),
+                rgba(0, 0, 255, 0.03)
+            );
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+
+        .neon-glow {
+            text-shadow: 0 0 10px rgba(34, 197, 94, 0.7), 0 0 20px rgba(34, 197, 94, 0.4);
+        }
+        
+        .neon-box {
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.15), inset 0 0 15px rgba(34, 197, 94, 0.05);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #030712; }
+        ::-webkit-scrollbar-thumb { background: #1a3e1a; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #22c55e; }
+    </style>
+</head>
+<body class="bg-gray-950 text-gray-100 font-sans antialiased selection:bg-green-500 selection:text-black relative min-h-screen flex flex-col justify-between">
+
+    <!-- CRT Scanline Effect -->
+    <div class="fixed inset-0 z-50 pointer-events-none scanlines opacity-40"></div>
+
+    <!-- Navigation Header -->
+    <header class="sticky top-0 z-40 bg-gray-950/95 backdrop-blur-md border-b border-green-500/30">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded bg-black border border-green-500 flex items-center justify-center text-green-400 font-terminal text-xl font-bold neon-glow">
+                    &gt;_
+                </div>
+                <div>
+                    <span class="text-xs font-terminal text-green-400 uppercase tracking-widest block">SENA ADSO // CGMLTI</span>
+                    <h1 class="text-base sm:text-lg font-bold font-terminal text-white tracking-wider">OPERACIÓN <span class="text-green-400 neon-glow">CGMLTI</span></h1>
+                </div>
+            </div>
+            <nav class="hidden lg:flex items-center gap-2 font-terminal text-xs">
+                <button onclick="switchTab('contexto')" id="nav-contexto" class="px-3 py-2 rounded text-green-400 bg-green-950/40 border border-green-500/50 transition-all neon-box">
+                    <i class="fa-solid fa-shield-halved mr-1"></i> 0. Teoría &amp; OWASP
+                </button>
+                <button onclick="switchTab('lab')" id="nav-lab" class="px-3 py-2 rounded text-gray-400 hover:text-green-400 border border-transparent transition-all">
+                    <i class="fa-solid fa-radar mr-1"></i> 1. Recon, Nmap &amp; Burp
+                </button>
+                <button onclick="switchTab('ataque')" id="nav-ataque" class="px-3 py-2 rounded text-gray-400 hover:text-green-400 border border-transparent transition-all">
+                    <i class="fa-solid fa-skull mr-1"></i> 2. Vectores de Ataque
+                </button>
+                <button onclick="switchTab('defensa')" id="nav-defensa" class="px-3 py-2 rounded text-gray-400 hover:text-green-400 border border-transparent transition-all">
+                    <i class="fa-solid fa-lock mr-1"></i> 3. Parcheo Seguro
+                </button>
+                <button onclick="switchTab('sandbox')" id="nav-sandbox" class="px-3 py-2 rounded text-gray-400 hover:text-green-400 border border-transparent transition-all">
+                    <i class="fa-solid fa-terminal mr-1"></i> Sandbox
+                </button>
+            </nav>
+            <button onclick="toggleMobileMenu()" class="lg:hidden text-green-400 p-2 focus:outline-none">
+                <i class="fa-solid fa-bars text-xl"></i>
+            </button>
+        </div>
+        <!-- Mobile menu -->
+        <div id="mobile-menu" class="hidden lg:hidden bg-gray-950 border-b border-green-500/30 px-4 py-4 space-y-3 font-terminal text-sm">
+            <button onclick="switchTab('contexto'); toggleMobileMenu();" class="block w-full text-left text-green-400 py-1">// 0. Teoría &amp; OWASP</button>
+            <button onclick="switchTab('lab'); toggleMobileMenu();" class="block w-full text-left text-gray-300 py-1">// 1. Recon, Nmap &amp; Burp</button>
+            <button onclick="switchTab('ataque'); toggleMobileMenu();" class="block w-full text-left text-gray-300 py-1">// 2. Vectores de Ataque</button>
+            <button onclick="switchTab('defensa'); toggleMobileMenu();" class="block w-full text-left text-gray-300 py-1">// 3. Parcheo Seguro</button>
+            <button onclick="switchTab('sandbox'); toggleMobileMenu();" class="block w-full text-left text-gray-300 py-1">// Terminal Sandbox</button>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
+
+        <!-- ========================================== -->
+        <!-- FASE 0: TEORÍA Y CONTEXTO (OWASP TOP 10)   -->
+        <!-- ========================================== -->
+        <section id="tab-contexto" class="space-y-12 animate-fade-in">
+            <!-- Hero Banner -->
+            <div class="relative overflow-hidden p-8 sm:p-12 rounded-2xl border border-green-500/40 bg-gradient-to-b from-black via-green-950/20 to-black neon-box text-center">
+                <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#22c55e_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                <div class="relative z-10">
+                    <span class="px-3 py-1 rounded-full bg-black border border-green-500/50 text-green-400 font-terminal text-xs uppercase mb-4 inline-block">BOOTCAMP OFICIAL ADSO // CGMLTI (5 HORAS)</span>
+                    <h2 class="text-3xl sm:text-5xl font-extrabold font-terminal text-white mb-4">
+                        EL DESAFÍO DE LA <span class="text-green-400 neon-glow">SOMBRA</span>
+                    </h2>
+                    <p class="max-w-2xl mx-auto text-gray-300 text-sm sm:text-base font-sans leading-relaxed">
+                        Entrenamiento intensivo en Hacking Ético y Seguridad Ofensiva/Defensiva. Transforma tu perspectiva de desarrollador a atacante para escribir software blindado desde su etapa de diseño.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Pentesting vs Vulnerability Assessment -->
+            <div class="p-6 sm:p-8 rounded-xl bg-black/90 border border-green-500/30 space-y-6">
+                <div class="flex items-center gap-3 border-b border-green-500/20 pb-4">
+                    <span class="w-8 h-8 rounded bg-green-500/20 border border-green-500 flex items-center justify-center text-green-400 font-terminal font-bold">01</span>
+                    <h3 class="text-xl font-bold font-terminal text-white">¿Realmente estamos haciendo un Pentesting?</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 font-sans text-sm text-gray-300">
+                    <div class="p-5 rounded-lg bg-gray-900 border border-green-500/20 space-y-2">
+                        <span class="text-xs font-terminal text-green-400 uppercase tracking-widest block font-bold">🏢 Pentesting Profesional (Industria):</span>
+                        <p class="text-xs leading-relaxed">
+                            Incluye contratos legales estrictos (Rules of Engagement), reconocimiento pasivo/activo (OSINT), escaneo de perímetros, explotación encadenada, movimiento lateral y entrega de un informe ejecutivo/técnico.
+                        </p>
+                    </div>
+                    <div class="p-5 rounded-lg bg-gray-900 border border-green-500/20 space-y-2">
+                        <span class="text-xs font-terminal text-green-400 uppercase tracking-widest block font-bold">🎯 Nuestro Target Lab (5 Horas):</span>
+                        <p class="text-xs leading-relaxed">
+                            Realizamos un <strong>Targeted Vulnerability Assessment &amp; Exploitation Lab</strong> sobre una aplicación controlada (Juice Shop) para entender la causa raíz del código inseguro y practicar su parcheo.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fundamentos: Ataques, Vectores y Mentalidad Hacker -->
+            <div class="p-6 sm:p-8 rounded-xl bg-black/90 border border-green-500/30 space-y-6">
+                <div class="flex items-center gap-3 border-b border-green-500/20 pb-4">
+                    <span class="w-8 h-8 rounded bg-green-500/20 border border-green-500 flex items-center justify-center text-green-400 font-terminal font-bold">02</span>
+                    <h3 class="text-xl font-bold font-terminal text-white">Ataques, Vulnerabilidades y Mentalidad Hacker (White Hat vs Black Hat)</h3>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 font-sans text-sm text-gray-300">
+                    <div class="p-4 rounded-lg bg-gray-900 border border-green-500/20 space-y-2">
+                        <h4 class="font-terminal font-bold text-green-400 text-sm">Conceptos Clave</h4>
+                        <p class="text-xs leading-relaxed">Una <strong>vulnerabilidad</strong> es un fallo de diseño o código. Un <strong>vector de ataque</strong> es la vía para explotarlo, y el <strong>ataque</strong> es la ejecución maliciosas o evaluativa.</p>
+                    </div>
+                    <div class="p-4 rounded-lg bg-green-950/20 border border-green-500/40 space-y-2">
+                        <h4 class="font-terminal font-bold text-green-400 text-sm">White Hat (Ético)</h4>
+                        <p class="text-xs leading-relaxed">Busca fallas con autorización expresa para mejorar la seguridad corporativa y proteger a los usuarios.</p>
+                    </div>
+                    <div class="p-4 rounded-lg bg-red-950/20 border border-red-500/40 space-y-2">
+                        <h4 class="font-terminal font-bold text-red-400 text-sm">Black Hat (Malicioso)</h4>
+                        <p class="text-xs leading-relaxed">Explota vulnerabilidades sin permiso para lucrarse, robar datos o dañar la infraestructura.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Anatomía HTTP y Zero Trust -->
+            <div class="p-6 sm:p-8 rounded-xl bg-black/90 border border-green-500/30 space-y-6">
+                <div class="flex items-center gap-3 border-b border-green-500/20 pb-4">
+                    <span class="w-8 h-8 rounded bg-green-500/20 border border-green-500 flex items-center justify-center text-green-400 font-terminal font-bold">03</span>
+                    <h3 class="text-xl font-bold font-terminal text-white">Anatomía HTTP y Principio Zero Trust</h3>
+                </div>
+                <p class="text-xs sm:text-sm text-gray-300 font-sans leading-relaxed">
+                    Todo ataque web manipula el flujo de red entre cliente y servidor. Bajo el modelo <strong>Zero Trust</strong> ("Nunca confíes, siempre verifica"), asumimos que el navegador del usuario es hostil y validamos estrictamente cada parámetro en el backend.
+                </p>
+                <div class="p-5 rounded-xl bg-black border border-green-500/40 font-terminal text-xs text-green-300 overflow-x-auto shadow-inner">
+                    <div class="flex items-center justify-between gap-4 text-center min-w-[700px]">
+                        <div class="p-4 rounded bg-gray-900 border border-green-500/50 flex-1 neon-box">
+                            <span class="text-white font-bold block mb-1 text-sm"><i class="fa-solid fa-user mr-1 text-green-400"></i> CLIENTE (Navegador)</span>
+                            <span class="text-gray-400 text-[11px] block mt-1">Zona Hostil / Modificable (HTML, JS, Cookies, Inputs)</span>
+                        </div>
+                        <div class="text-green-400 font-bold flex flex-col items-center">
+                            <span class="text-xs text-green-300 mb-1">HTTP Request</span>
+                            <span class="text-lg neon-glow">&mdash;&mdash;&mdash;&mdash;&mdash;&gt;</span>
+                            <span class="text-red-400 text-[10px] mt-1">[ Riesgo de Manipulación ]</span>
+                        </div>
+                        <div class="p-4 rounded bg-gray-900 border border-green-500/50 flex-1 neon-box">
+                            <span class="text-white font-bold block mb-1 text-sm"><i class="fa-solid fa-server mr-1 text-green-400"></i> SERVIDOR (Backend)</span>
+                            <span class="text-gray-400 text-[11px] block mt-1">Zona Segura (Validación, Sanitización, Criptografía)</span>
+                        </div>
+                        <div class="text-green-400 font-bold flex flex-col items-center">
+                            <span class="text-xs text-green-300 mb-1">Prepared Query</span>
+                            <span class="text-lg">&mdash;&mdash;&mdash;&gt;</span>
+                        </div>
+                        <div class="p-4 rounded bg-gray-900 border border-green-500/50 flex-1 neon-box">
+                            <span class="text-white font-bold block mb-1 text-sm"><i class="fa-solid fa-database mr-1 text-green-400"></i> BASE DE DATOS</span>
+                            <span class="text-gray-400 text-[11px] block mt-1">Almacenamiento Cifrado</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OWASP Top 10 -->
+            <div class="space-y-6">
+                <div class="flex items-center justify-between border-b border-green-500/30 pb-4">
+                    <div class="flex items-center gap-3">
+                        <span class="w-8 h-8 rounded bg-green-500/20 border border-green-500 flex items-center justify-center text-green-400 font-terminal font-bold">04</span>
+                        <h3 class="text-xl font-bold font-terminal text-white">OWASP Top 10: Vulnerabilidades con Ejemplos Cercanos</h3>
+                    </div>
+                    <span class="text-xs font-terminal text-gray-400">Estándar Mundial</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 font-sans text-xs">
+                    <div class="p-5 rounded-xl bg-black/80 border border-green-500/30 space-y-2">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-terminal font-bold text-green-400 text-sm">A01: Broken Access Control</h4>
+                            <span class="text-xs bg-red-950 text-red-300 border border-red-800 px-2 py-0.5 rounded">Crítico</span>
+                        </div>
+                        <p class="text-slate-300"><strong>Ejemplo cercano:</strong> Cambiar en la URL de tu cuenta <code>/cuenta?id=105</code> por <code>id=106</code> y ver los saldos de otra persona porque el servidor no validó tu propiedad.</p>
+                    </div>
+                    <div class="p-5 rounded-xl bg-black/80 border border-green-500/30 space-y-2">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-terminal font-bold text-green-400 text-sm">A03: Injection (SQLi / XSS)</h4>
+                            <span class="text-xs bg-red-950 text-red-300 border border-red-800 px-2 py-0.5 rounded">Crítico</span>
+                        </div>
+                        <p class="text-slate-300"><strong>Ejemplo cercano:</strong> Inyectar <code>' OR '1'='1</code> en un login para convencer a la base de datos de que la contraseña fue correcta.</p>
+                    </div>
+                    <div class="p-5 rounded-xl bg-black/80 border border-green-500/30 space-y-2">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-terminal font-bold text-green-400 text-sm">A07: Identification and Authentication Failures</h4>
+                            <span class="text-xs bg-red-950 text-red-300 border border-red-800 px-2 py-0.5 rounded">Alto</span>
+                        </div>
+                        <p class="text-slate-300"><strong>Ejemplo cercano:</strong> Permitir ataques de fuerza bruta ilimitados contra el login sin CAPTCHA ni bloqueo de IP.</p>
+                    </div>
+                    <div class="p-5 rounded-xl bg-black/80 border border-green-500/30 space-y-2">
+                        <div class="flex justify-between items-start">
+                            <h4 class="font-terminal font-bold text-green-400 text-sm">A06: Vulnerable and Outdated Components</h4>
+                            <span class="text-xs bg-red-950 text-red-300 border border-red-800 px-2 py-0.5 rounded">Crítico</span>
+                        </div>
+                        <p class="text-slate-300"><strong>Ejemplo cercano:</strong> Usar una librería de Node.js o Python desactualizada que tiene una vulnerabilidad pública conocida (CVE).</p>
+                    </div>
+                </div>
+
+                <div class="text-center pt-6">
+                    <button onclick="switchTab('lab')" class="px-8 py-4 bg-green-500 text-black font-bold font-terminal text-sm rounded hover:bg-green-400 transition-all shadow-[0_0_20px_rgba(34,197,94,0.4)]">
+                        AVANZAR AL LABORATORIO PRÁCTICO &rarr;
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- FASE 1: LABORATORIO, RECON, NMAP & BURP    -->
+        <!-- ========================================== -->
+        <section id="tab-lab" class="space-y-12 hidden animate-fade-in">
+            <!-- Header de Fase -->
+            <div class="p-6 sm:p-8 rounded-xl bg-black/90 border border-green-500/30 space-y-6">
+                <div class="flex items-center gap-3 border-b border-green-500/20 pb-4">
+                    <span class="w-8 h-8 rounded bg-green-500/20 border border-green-500 flex items-center justify-center text-green-400 font-terminal font-bold">F1</span>
+                    <h3 class="text-xl font-bold font-terminal text-white">Laboratorio Práctico: Despliegue, Reconocimiento Nmap &amp; Intercepción con Burp Suite</h3>
+                </div>
+                
+                <p class="text-sm text-gray-300 font-sans leading-relaxed">
+                    En esta fase práctica en entorno <strong>Windows</strong> (con <strong>Python 3.14</strong> y Node.js), levantaremos <strong>OWASP Juice Shop</strong>, realizaremos reconocimiento de puertos con <strong>Nmap</strong> (usando la analogía del edificio), analizaremos la inferencia del puerto 3000 y configuraremos <strong>Burp Suite junto con FoxyProxy</strong> para interceptar, inspeccionar y manipular tráfico HTTP real.
+                </p>
+
+                <!-- Configuración Local y Despliegue de Juice Shop -->
+                <div class="space-y-4 pt-2">
+                    <h4 class="font-terminal font-bold text-green-400 text-sm uppercase tracking-wide"><i class="fa-solid fa-laptop-code mr-2"></i>Paso 1: Configuración del Entorno y Despliegue de Juice Shop</h4>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 font-sans text-xs">
+                        <div class="p-4 rounded-lg bg-gray-900 border border-green-500/30 space-y-2">
+                            <span class="text-green-400 font-terminal font-bold block">1. Entorno Virtual Python 3.14 &amp; Semgrep</span>
+                            <p class="text-gray-300">Abre PowerShell y ejecuta:</p>
+                            <div class="p-2 bg-black rounded font-terminal text-green-300 overflow-x-auto space-y-1">
+                                mkdir C:\cgmlti-lab<br>
+                                cd C:\cgmlti-lab<br>
+                                python -m venv .venv<br>
+                                <span class="text-yellow-400">.venv\Scripts\activate</span><br>
+                                pip install semgrep
+                            </div>
+                        </div>
+
+                        <div class="p-4 rounded-lg bg-gray-900 border border-green-500/30 space-y-2">
+                            <span class="text-green-400 font-terminal font-bold block">2. Clonar y Ejecutar Juice Shop (Node.js)</span>
+                            <p class="text-gray-300">En otra terminal PowerShell:</p>
+                            <div class="p-2 bg-black rounded font-terminal text-green-300 overflow-x-auto space-y-1">
+                                cd C:\cgmlti-lab<br>
+                                git clone https://github.com/juice-shop/juice-shop.git<br>
+                                cd juice-shop<br>
+                                npm install<br>
+                                npm start
+                            </div>
+                            <p class="text-[11px] text-gray-400">Navegador: <code>http://localhost:3000</code></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Reconocimiento de Puertos con Nmap (Analogía del Edificio) -->
+                <div class="space-y-4 pt-4 border-t border-green-500/20">
+                    <h4 class="font-terminal font-bold text-green-400 text-sm uppercase tracking-wide"><i class="fa-solid fa-radar mr-2"></i>Paso 2: Reconocimiento de Puertos (Nmap &amp; La Analogía del Edificio)</h4>
+                    
+                    <div class="p-5 rounded-lg bg-gray-900 border border-green-500/30 space-y-6 font-sans text-xs text-gray-300">
+                        <div class="space-y-3">
+                            <p class="leading-relaxed text-sm">
+                                <strong class="text-white">🏢 La Analogía del Edificio:</strong> Imagina que te contratan como auditor de seguridad física de un gran edificio corporativo de 65,535 puertas. <strong>Nmap</strong> es la herramienta que te permite caminar alrededor del edificio tocando cada puerta para ver cuáles responden y qué cerradura tienen.
+                            </p>
+                            <p class="text-gray-400">Descarga oficial de Nmap para Windows: <a href="https://nmap.org/download.html" target="_blank" class="text-green-400 underline font-bold">nmap.org/download.html</a></p>
+                        </div>
+
+                        <!-- 4 Pasos Nmap Detallados -->
+                        <div class="space-y-4 pt-2 font-sans">
+                            <!-- Paso 1 Nmap -->
+                            <div class="p-4 bg-black rounded-lg border border-green-500/30 space-y-2">
+                                <span class="text-green-400 font-terminal font-bold text-sm block">Paso 1: Descubrimiento de Hosts (¿Quién está encendido en la red?)</span>
+                                <p class="text-slate-300"><strong>Contexto real:</strong> Imagina que llegas a una empresa y te dan una dirección de red asignada (ej. <code>192.168.1.0/24</code>). Lo primero que haces es lanzar un radar para ver qué IPs tienen vida y no perder tiempo escaneando direcciones vacías.</p>
+                                <div class="p-2 bg-gray-950 rounded font-terminal text-green-300">
+                                    nmap -sn 192.168.1.0/24 <span class="text-gray-500"># O para pruebas seguras de práctica: nmap -sn scanme.nmap.org</span>
+                                </div>
+                                <p class="text-slate-400 text-[11px]"><strong>Qué explicar a los alumnos:</strong> La bandera <code>-sn</code> apaga el escaneo de puertos y solo hace un "ping múltiple". Es silencioso y rápido.</p>
+                            </div>
+
+                            <!-- Paso 2 Nmap -->
+                            <div class="p-4 bg-black rounded-lg border border-green-500/30 space-y-2">
+                                <span class="text-green-400 font-terminal font-bold text-sm block">Paso 2: El Escaneo de Puertos Estándar (Abriendo el mapa)</span>
+                                <p class="text-slate-300"><strong>Contexto real:</strong> Ya localizamos la IP del servidor de la empresa (ej. <code>192.168.1.50</code> o <code>scanme.nmap.org</code>). Ahora necesitamos saber qué puertas tiene abiertas al exterior (¿tiene una página web? ¿un panel de control? ¿un acceso remoto?).</p>
+                                <div class="p-2 bg-gray-950 rounded font-terminal text-green-300">
+                                    nmap scanme.nmap.org <span class="text-gray-500"># O en nuestro lab local: nmap localhost</span>
+                                </div>
+                                <p class="text-slate-400 text-[11px]"><strong>Qué explicar a los alumnos:</strong> Al ejecutar esto, Nmap revisará los 1000 puertos más comunes. Les aparecerá una tabla indicando qué puertos están Open (abiertos) y qué servicio nominal hay detrás.</p>
+                            </div>
+
+                            <!-- Paso 3 Nmap -->
+                            <div class="p-4 bg-black rounded-lg border border-green-500/30 space-y-2">
+                                <span class="text-green-400 font-terminal font-bold text-sm block">Paso 3: Detección de Versiones (Afinando la lupa)</span>
+                                <p class="text-slate-300"><strong>Contexto real:</strong> Saber que el puerto está abierto es útil, pero un atacante (o auditor) profesional necesita saber qué software exacto corre allí para saber si tiene fallos. No es lo mismo usar una cerradura de hace 20 años que una moderna. <em>(Recuerda abrir PowerShell como Administrador para exprimir al máximo las opciones de red en Windows).</em></p>
+                                <div class="p-2 bg-gray-950 rounded font-terminal text-green-300">
+                                    nmap -sV localhost
+                                </div>
+                                <p class="text-slate-400 text-[11px]"><strong>Qué explicar a los alumnos:</strong> La bandera <code>-sV</code> se comunica directamente con los servicios abiertos para "arrancarles" la versión exacta.</p>
+                            </div>
+
+                            <!-- Análisis de ppp? -->
+                            <div class="p-4 bg-green-950/20 rounded-lg border border-green-500/40 space-y-2">
+                                <span class="text-green-300 font-terminal font-bold text-sm block">🔍 Análisis de Resultados Locales: ¿Qué significa "ppp?" en el puerto 3000?</span>
+                                <p class="text-slate-300">
+                                    Al escanear <code>localhost</code>, notarás que el puerto 3000 aparece abierto pero con la etiqueta <strong><code>ppp?</code></strong>. 
+                                </p>
+                                <ul class="list-disc pl-4 space-y-1 text-slate-300">
+                                    <li><strong>¿Por qué aparece así?</strong> Nmap no reconoció con 100% de certeza el protocolo por la firma estándar, por lo que añade el interrogante (<code>?</code>). No tiene relación con PPP de red; es una confusión del escáner ante el servidor web Node.js/Express personalizado de Juice Shop.</li>
+                                    <li><strong>¿Cómo lo verifica un Pentester en la realidad?</strong> Tras la detección inicial, pasamos a la <strong>verificación manual</strong>: abrimos el navegador en <code>http://localhost:3000</code> o inspeccionamos las cabeceras HTTP con herramientas como Burp Suite, confirmando que es OWASP Juice Shop.</li>
+                                </ul>
+                            </div>
+
+                            <!-- Paso 4 Nmap -->
+                            <div class="p-4 bg-black rounded-lg border border-green-500/30 space-y-2">
+                                <span class="text-green-400 font-terminal font-bold text-sm block">Paso 4: El Motor de Scripts (La búsqueda automática de fallos)</span>
+                                <p class="text-slate-300"><strong>Contexto real:</strong> En una auditoría de 5 horas no podemos revisar a mano cada programa en busca de vulnerabilidades. Aquí es donde los pentesters automatizan la primera capa de revisión de fallos conocidos.</p>
+                                <div class="p-2 bg-gray-950 rounded font-terminal text-green-300">
+                                    nmap -p 3000 --script vuln localhost
+                                </div>
+                                <p class="text-slate-400 text-[11px]"><strong>Qué explicar a los alumnos:</strong> Nmap despliega una batería de scripts integrados (NSE) para buscar vulnerabilidades lógicas comunes en los servicios detectados.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Paso 3: Navegación Normal en Juice Shop antes de Burp Suite -->
+                <div class="space-y-4 pt-4 border-t border-green-500/20">
+                    <h4 class="font-terminal font-bold text-green-400 text-sm uppercase tracking-wide"><i class="fa-solid fa-compass mr-2"></i>Paso 3: Navegación Normal en Juice Shop (Estableciendo la Línea Base)</h4>
+                    
+                    <div class="p-5 rounded-lg bg-gray-900 border border-green-500/30 space-y-4 font-sans text-xs text-gray-300">
+                        <p class="leading-relaxed text-sm">
+                            Antes de colocar un intermediario como Burp Suite, es fundamental que operes la aplicación web de manera normal para entender su funcionamiento cotidiano, registrarte y explorar sus menús.
+                        </p>
+                        <ol class="list-decimal pl-5 space-y-2 text-slate-300">
+                            <li>Abre tu navegador y entra a <a href="http://localhost:3000" target="_blank" class="text-green-400 underline font-bold">http://localhost:3000</a>.</li>
+                            <li>Haz clic en el botón superior derecho <strong>Account</strong> y selecciona <strong>Register</strong> para crear una cuenta nueva de prueba (ej. correo <code>aprendiz@sena.edu.co</code> y contraseña).</li>
+                            <li>Inicia sesión con tus credenciales recién creadas.</li>
+                            <li>Navega por el catálogo de productos, añade un artículo al carrito de compras y explora la sección de búsqueda.</li>
+                        </ol>
+                        <p class="text-green-300 text-xs italic">
+                            💡 Una vez que conoces cómo se comporta la aplicación en condiciones normales, sabrás exactamente qué peticiones HTTP interceptar y modificar en el siguiente paso.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Paso 4: Burp Suite & FoxyProxy (Intercepción de Tráfico) -->
+                <div class="space-y-4 pt-4 border-t border-green-500/20">
+                    <h4 class="font-terminal font-bold text-green-400 text-sm uppercase tracking-wide"><i class="fa-solid fa-shield-cat mr-2"></i>Paso 4: Burp Suite &amp; FoxyProxy (Intercepción y Ejemplo Práctico)</h4>
+                    
+                    <div class="p-5 rounded-lg bg-gray-900 border border-green-500/30 space-y-6 font-sans text-xs text-gray-300">
+                        <p class="leading-relaxed text-sm">
+                            Una vez descubierta la aplicación en el puerto 3000 con Nmap y explorada de forma normal, el siguiente paso clave en un Pentesting Web profesional es colocar un intermediario para inspeccionar y modificar cada petición HTTP(S) antes de que llegue al servidor. <strong>Burp Suite (Community Edition)</strong> junto con la extensión <strong>FoxyProxy</strong> es el estándar de la industria. Enlace de descarga oficial de Burp Suite: <a href="https://portswigger.net/burp/communitydownload" target="_blank" class="text-green-400 underline font-bold">portswigger.net/burp/communitydownload</a>.
+                        </p>
+
+                        <!-- Configuración Paso a Paso FoxyProxy -->
+                        <div class="space-y-3">
+                            <h5 class="text-green-400 font-terminal font-bold text-sm">🛠️ Configuración Paso a Paso de FoxyProxy y Certificado SSL:</h5>
+                            <ol class="list-decimal pl-5 space-y-2 text-slate-300">
+                                <li><strong>Instala Burp Suite Community Edition:</strong> Descárgalo desde el sitio oficial de PortSwigger e inicia un proyecto temporario (Temporary Project). Ve a la pestaña <strong>Proxy &gt; Intercept</strong> y asegúrate de que esté en estado <em>Intercept is on</em>.</li>
+                                <li><strong>Instala la Extensión FoxyProxy:</strong> En tu navegador (Firefox o Chrome), busca e instala la extensión <strong>FoxyProxy Standard</strong> desde la tienda oficial de complementos.</li>
+                                <li><strong>Configura el Proxy en FoxyProxy:</strong> Haz clic en el ícono de FoxyProxy en tu navegador, ve a <em>Opciones / Configuración</em> y añade un nuevo proxy con los siguientes datos:
+                                    <ul class="list-disc pl-5 mt-1 text-gray-400">
+                                        <li><strong>Título:</strong> Burp Suite CGMLTI</li>
+                                        <li><strong>Tipo de Proxy:</strong> HTTP / HTTPS</li>
+                                        <li><strong>IP / Hostname:</strong> <code>127.0.0.1</code></li>
+                                        <li><strong>Puerto:</strong> <code>8080</code></li>
+                                    </ul>
+                                </li>
+                                <li><strong>Activa el Proxy:</strong> Selecciona el perfil "Burp Suite CGMLTI" en FoxyProxy para enrutar el tráfico de tu navegador a través de Burp.</li>
+                                <li><strong>Certificado CA de Burp (Opcional para HTTPS):</strong> Si navegas por HTTPS, configura tu navegador para confiar en el certificado raíz de PortSwigger accediendo a <code>http://burp</code> con el proxy activo y descargando el certificado CA.</li>
+                            </ol>
+                        </div>
+
+                        <!-- Ejemplo Práctico con Juice Shop -->
+                        <div class="p-4 bg-black rounded-lg border border-green-500/40 space-y-3 font-sans">
+                            <h5 class="text-green-300 font-terminal font-bold text-sm">🎯 Ejemplo Práctico en Vivo: Interceptando el Customer Feedback de OWASP Juice Shop</h5>
+                            <p class="text-slate-300 text-xs">
+                                Vamos a ver exactamente qué ocurre cuando un usuario intenta registrar un customer feedback en Juice Shop y cómo podemos interceptar y modificar esa solicitud HTTP con Burp Suite.
+                            </p>
+                            <ol class="list-decimal pl-5 space-y-1.5 text-slate-300 text-xs">
+                                <li>Asegúrate de que <strong>FoxyProxy</strong> esté activo apuntando a <code>127.0.0.1:8080</code> y que en Burp Suite el botón de <em>Intercept</em> esté en <strong>Intercept is on</strong>.</li>
+                                <li>En Burp Site, abre Open Browser <a href="http://127.0.0.1:3000/#/feedback" target="_blank" class="text-green-400 underline">http://127.0.0.1:3000/#/feedback</a>.</li>
+                                <li>Introduce un comentario y el rating 1 valida el captcha y haz clic en el botón <strong>Submit</strong>.</li>
+                                <li><strong>¡Magia en Burp Suite!</strong> La página del navegador se quedará cargando ("pensando") porque la petición HTTP POST se ha detenido congelada en la pestaña <strong>Proxy &gt; Intercept</strong> de Burp.</li>
+                                <li>En Burp Suite verás la solicitud cruda:
+                                <li><strong>Manipulación (El poder del atacante):</strong> Antes de hacer clic en el botón <strong>Forward</strong> para enviar la petición al servidor, puedes cambiar directamente el JSON en la ventana de Burp por y coloca un 0 en el valor rate</li>
+                                <li>Haz clic en <strong>Forward</strong> y observa cómo el servidor procesa el contenido alterado, ve al menú About Us y busca tu feedback.</li>
+                            </ol>
+                        </div>
+
+                        <!-- Sección: ¿Se puede usar Burp Suite para alterar precios o compras en Juice Shop? (Explicación de Validación en Backend) -->
+                        <div class="p-4 bg-green-950/30 rounded-lg border border-green-500/50 space-y-3 font-sans">
+                            <h5 class="text-green-400 font-terminal font-bold text-sm">💡 ¿Burp Suite sirve para alterar precios o compras en Juice Shop? (Realidad de la Validación)</h5>
+                            <p class="text-slate-300 text-xs leading-relaxed">
+                                En teoría, el objetivo de interceptar solicitudes comerciales (como carritos de compras, reseñas/feedback o pagos) es comprobar si el backend confía en los datos enviados por el cliente (vulnerabilidades de <em>Business Logic Flaws</em>). Sin embargo, al intentar esto en aplicaciones como OWASP Juice Shop (por ejemplo, al enviar una calificación con <code>rating: 0</code> o alterar precios), notarás que muchas veces <strong>el servidor rechaza el cambio o arroja un valor nulo si no cumple con las reglas del negocio</strong>.
+                            </p>
+                            <p class="text-slate-300 text-xs leading-relaxed">
+                                <strong>¿Por qué ocurre esto y qué nos enseña?</strong>
+                            </p>
+                            <ul class="list-disc pl-5 space-y-1 text-slate-300 text-xs">
+                                <li>Si envías un rating de 0 o valores atípicos, el esquema de validación en el servidor (o base de datos) puede fallar o retornar <code>null</code> si esperaba un rango estricto entre 1 y 5 estrellas.</li>
+                                <li>OWASP Juice Shop calcula los precios y estados de los productos en la base de datos basándose en el <code>ProductId</code> y no en el campo enviado desde el navegador. Si intentas mandar <code>{"price": 0.00}</code>, el servidor simplemente lo ignora o recalcula el total usando el ID real del producto.</li>
+                                <li><strong>La lección de seguridad:</strong> ¡Esto es exactamente lo que busca un desarrollador seguro! Demuestra que <strong>NUNCA se debe confiar en los datos financieros o lógicos provenientes del cliente</strong>, obligando siempre al backend a recalcular y validar precios, rangos de feedback y permisos en el servidor.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 2: VECTORES DE ATAQUE                   -->
+        <!-- ========================================== -->
+        <section id="tab-ataque" class="space-y-12 hidden animate-fade-in">
+            <div class="border-b border-green-500/30 pb-4">
+                <h3 class="text-xl font-bold font-terminal text-white">Laboratorio Ofensivo: Explotación de los 4 Vectores en Juice Shop</h3>
+                <p class="text-xs text-gray-400 font-sans mt-1">Guía paso a paso para ejecutar cada ataque, entender su funcionamiento y registrar evidencias.</p>
+            </div>
+
+            <div class="space-y-8">
+                <!-- Vector 1: SQLi -->
+                <div class="p-6 rounded-xl bg-black/90 border border-red-500/40 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-terminal font-bold text-red-400 text-lg"><i class="fa-solid fa-database mr-2"></i>Vector A: Inyección SQL (SQLi) en el Login</h4>
+                        <span class="text-xs bg-red-950 text-red-300 border border-red-800 px-2.5 py-1 rounded">A03: Injection</span>
+                    </div>
+                    <div class="p-4 rounded-lg bg-yellow-950/20 border border-yellow-500/30 text-sm font-sans text-gray-300 space-y-2">
+                        <h5 class="font-terminal font-bold text-yellow-300">¿Qué es una inyección SQL y cómo se produce?</h5>
+                        <p class="text-xs leading-relaxed">Una <strong>inyección SQL (SQLi)</strong> ocurre cuando una aplicación incorpora datos proporcionados por una persona dentro de una instrucción SQL y la base de datos termina interpretando esos datos como parte de la instrucción, en vez de tratarlos únicamente como valores. Puede ocurrir, por ejemplo, si el backend construye la consulta concatenando directamente el correo o la contraseña recibidos desde el formulario.</p>
+                        <p class="text-xs leading-relaxed">La causa raíz es confundir <strong>código SQL</strong> con <strong>datos de entrada</strong>. La defensa principal es usar consultas parametrizadas o preparadas, además de validar los datos en el servidor y limitar los permisos de la cuenta de base de datos. La validación del navegador por sí sola no protege la consulta.</p>
+                        <p class="text-xs text-yellow-200">Esta demostración debe realizarse únicamente en la instancia local de Juice Shop preparada para el laboratorio.</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm font-sans text-gray-300">
+                        <div class="space-y-3">
+                            <p><strong class="text-white">¿Por qué y para qué?:</strong> Burlar la autenticación sin conocer la contraseña del administrador manipulando la consulta SQL subyacente.</p>
+                            <p><strong class="text-white">Paso a Paso en Pantalla:</strong></p>
+                            <ol class="list-decimal pl-5 space-y-1 text-xs text-gray-300">
+                                <li>Dirígete a la pantalla de Login de Juice Shop (<code>#/login</code>).</li>
+                                <li>En el campo de Correo (Email), ingresa: <code class="text-red-400">admin@juice-sh.op' --</code></li>
+                                <li>En Contraseña, escribe cualquier valor aleatorio (ej. <code>123456</code>).</li>
+                                <li>Haz clic en <strong>Log in</strong>. Observa cómo el servidor te autentica como administrador.</li>
+                            </ol>
+                        </div>
+                        <div class="p-4 bg-gray-900 rounded-lg border border-red-500/20 font-terminal text-xs text-red-300 space-y-2">
+                            <span class="text-white font-bold block">// Consulta SQL Insegura en Backend:</span>
+                            <p class="text-gray-400">SELECT * FROM Users WHERE email = '<strong>admin@juice-sh.op' --</strong>' AND password = '...'</p>
+                            <p class="pt-2 border-t border-red-500/20 font-sans text-xs leading-relaxed text-gray-300"><strong class="text-white">¿Por qué permite el acceso?</strong> En este ejemplo, el backend arma SQL concatenando el correo recibido. La entrada modifica cómo se interpreta la consulta, de modo que deja de comprobarse la contraseña como se pretendía. Si la consulta devuelve la fila de una cuenta, el código de autenticación vulnerable puede tomar ese resultado como prueba suficiente y crear una sesión. El fallo no es que la base de datos “adivine” la contraseña: es que la aplicación confunde entrada con instrucciones SQL. Con parámetros, el contenido del correo se compara como un valor literal y no puede cambiar la estructura de la consulta.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Vector 2: XSS -->
+                <div class="p-6 rounded-xl bg-black/90 border border-red-500/40 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-terminal font-bold text-red-400 text-lg"><i class="fa-solid fa-code mr-2"></i>Vector B: Cross-Site Scripting (Reflected XSS / Estilo Anonymous)</h4>
+                        <span class="text-xs bg-red-950 text-red-300 border border-red-800 px-2.5 py-1 rounded">A03: XSS</span>
+                    </div>
+                    <div class="p-4 rounded-lg bg-yellow-950/20 border border-yellow-500/30 text-sm font-sans text-gray-300 space-y-2">
+                        <h5 class="font-terminal font-bold text-yellow-300">¿Qué es XSS y qué puede producir?</h5>
+                        <p class="text-xs leading-relaxed"><strong>Cross-Site Scripting (XSS)</strong> es una vulnerabilidad en la que una aplicación muestra datos no confiables como si fueran contenido ejecutable. En un XSS reflejado, el servidor devuelve en la respuesta un valor recibido en una petición y la página lo inserta en el documento sin codificarlo correctamente; el navegador puede interpretarlo como HTML o JavaScript, en lugar de mostrarlo como texto.</p>
+                        <p class="text-xs leading-relaxed">El código se ejecuta en el contexto del sitio que la persona está visitando. Según los permisos de la sesión y las protecciones del navegador, puede modificar lo que se muestra o realizar acciones como esa persona. No significa automáticamente que una cookie pueda leerse: las cookies con protección <code>HttpOnly</code> no son accesibles desde JavaScript. Para prevenirlo, se debe codificar la salida según el contexto, evitar insertar HTML no confiable y usar mecanismos seguros de renderizado.</p>
+                        <p class="text-xs text-yellow-200">Analiza este comportamiento únicamente en la instancia local de Juice Shop preparada para el laboratorio.</p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm font-sans text-gray-300">
+                        <div class="space-y-3">
+                            <p><strong class="text-white">¿Cuál es el riesgo?:</strong> El código no autorizado puede alterar lo que muestra la página y, según los controles de la aplicación, intentar acciones con los permisos de la sesión activa.</p>
+                            <p><strong class="text-white">Paso a Paso en Pantalla:</strong></p>
+                            <ol class="list-decimal pl-5 space-y-1 text-xs text-gray-300">
+                                <li>Abre la barra de búsqueda superior en Juice Shop.</li>
+                                <li>Ingresa el payload: <code class="text-red-400">&lt;iframe src="javascript:alert(`CGMLTI_HACKED`)"&gt;&lt;/iframe&gt;</code></li>
+                                <li>Presiona Enter y observa la ejecución inmediata en el DOM reflejado.</li>
+                            </ol>
+                        </div>
+                        <div class="p-4 bg-gray-900 rounded-lg border border-red-500/20 font-terminal text-xs text-red-300 space-y-2">
+                            <span class="text-white font-bold block">// Código Vulnerable en Frontend:</span>
+                            <p class="text-gray-400">&lt;div&gt; Resultados para: {{searchQuery | safe}} &lt;/div&gt;</p>
+                        </div>
+                    </div>
+                    <div class="p-4 rounded-lg bg-red-950/20 border border-red-500/30 text-xs font-sans text-gray-300 space-y-2">
+                        <h5 class="font-terminal font-bold text-red-300">Impacto potencial y límites</h5>
+                        <p class="leading-relaxed"><strong class="text-white">¿Por qué ocurre?</strong> La aplicación inserta la búsqueda sin escapar como HTML y el navegador analiza ese HTML para construir la página. Si encuentra contenido ejecutable, lo ejecuta como parte del sitio que lo entregó; por eso el script puede interactuar con elementos de esa página y con la sesión activa según los controles del sitio. La alerta solo muestra un resultado visible: no significa que el navegador esté mostrando el código fuente ni que todas las cookies sean legibles.</p>
+                        <p class="leading-relaxed">En un sitio vulnerable, un script inyectado podría alterar el contenido o intentar acciones disponibles para la sesión activa. <code>HttpOnly</code> evita que JavaScript lea directamente esa cookie, pero no impide que el navegador la adjunte automáticamente a solicitudes del mismo sitio; por eso no reemplaza la corrección del XSS. Usa también <code>Secure</code> y un valor adecuado de <code>SameSite</code> en las cookies de sesión.</p>
+                        <p class="leading-relaxed">Para la práctica, conserva la alerta inocua como evidencia de ejecución y no intentes leer, copiar ni transmitir cookies o datos de sesión. La solución de fondo es codificar correctamente la salida y evitar renderizar entradas no confiables como HTML.</p>
+                    </div>
+                    <div class="p-4 rounded-lg bg-green-950/20 border border-green-500/30 text-xs font-sans text-gray-300 space-y-3">
+                        <h5 class="font-terminal font-bold text-green-300">Impactos posibles y remediación</h5>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <p><strong class="text-white">Sesión:</strong> el script puede intentar operar dentro de la página con la sesión de la persona. El riesgo depende de cómo se protegen las acciones y credenciales.</p>
+                                <p><strong class="text-white">Interfaz:</strong> puede cambiar contenido visible; por eso una página legítima comprometida puede mostrar información engañosa.</p>
+                                <p><strong class="text-white">Datos:</strong> puede acceder a información que ya está disponible para el código de esa página. El impacto depende de los datos expuestos y del aislamiento del navegador.</p>
+                            </div>
+                            <div class="space-y-2">
+                                <p><strong class="text-white">Salida segura:</strong> codificar los datos según el contexto y preferir APIs de renderizado que los traten como texto, no como HTML.</p>
+                                <p><strong class="text-white">Contenido permitido:</strong> si se necesita HTML, sanearlo con una biblioteca mantenida y una lista permitida mínima.</p>
+                                <p><strong class="text-white">Defensa en profundidad:</strong> configurar una política CSP restrictiva y cookies con <code>HttpOnly</code>, <code>Secure</code> y <code>SameSite</code>. CSP ayuda a reducir ejecución no autorizada, pero no sustituye corregir el origen del XSS.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                 <!-- Vector 3: JWT -->
+                <div class="p-6 rounded-xl bg-black/90 border border-red-500/40 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-terminal font-bold text-red-400 text-lg"><i class="fa-solid fa-key mr-2"></i>Vector C: Manipulación de Tokens JWT paso a paso con CyberChef</h4>
+                        <span class="text-xs bg-red-950 text-red-300 border border-red-800 px-2.5 py-1 rounded">A07: Auth Failures</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm font-sans text-gray-300">
+                        <div class="space-y-3">
+                            <p><strong class="text-white">¿Por qué y para qué?:</strong> Explotar aplicaciones que confían ciegamente en el contenido de un token JWT almacenado en el navegador, alterando el rol de <code>customer</code> a <code>admin</code> para lograr una escalada de privilegios instantánea sin conocer la contraseña.</p>
+                            <p><strong class="text-white">Guía Detallada Paso a Paso con CyberChef:</strong></p>
+                            <ol class="list-decimal pl-5 space-y-2 text-xs text-gray-300">
+                                <li><strong>Inicia sesión normal:</strong> Entra a Juice Shop con tu cuenta de aprendiz normal y abre la consola de desarrollo de tu navegador presionando <strong>F12</strong>.</li>
+                                <li><strong>Obtén el Token:</strong> Ve a la pestaña <strong>Application</strong> (o Storage), despliega <strong>Local Storage</strong>, haz clic en <code>http://localhost:3000</code> y busca la clave llamada <code>token</code>. Copia su valor completo.</li>
+                                <li><strong>Anatomía del JWT:</strong> Un token consta de tres partes separadas por puntos: <code>Header.Payload.Signature</code>.</li>
+                                <li><strong>Paso 1 en CyberChef (<a href="https://gchq.github.io/CyberChef/#input=ZXlKMGVYQWlPaUpLVjFRaUxDSmhiR2NpT2lKU1V6STFOaUo5" target="_blank" class="text-green-400 underline">Abrir enlace</a>):</strong> Toma la primera parte (el Payload o Header) y pégala en el cuadro de <strong>Input</strong>.</li>
+                                <li><strong>Paso 2 (Decodificación Base64URL):</strong> En el panel de operaciones (Recipe), selecciona y arrastra <code class="text-yellow-400">From Base64</code> y cámbiale las opciones de codificación a <code class="text-cyan-400">URL safe</code>. Inmediatamente verás los datos legibles en el Output.</li>
+                                <li><strong>Paso 3 (Reemplazo):</strong> Haz clic en el botón <code class="text-green-400">"Replace input with output"</code> para fijar el texto decodificado.</li>
+                                <li><strong>Paso 4 (Limpieza y Re-codificación):</strong> Haz clic en <strong>Clear recipe</strong> para limpiar la receta. Selecciona la operación <code class="text-yellow-400">To Base64</code> y cámbiale las opciones de codificación a <code class="text-cyan-400">URL safe</code></li>            
+                                <li><strong>Paso 5 (Modificación):</strong> Modifica el algoritmo a <code class="text-red-400">"none"</code></li>
+                                <li><strong>Paso 6 (Repetición):</strong> Repite el proceso con la segunda parte del token pero cambiando el rol a <code class="text-red-400">"admin"</code></li>
+                                <li><strong>Paso 7 (Inyección):</strong> Vuelve al navegador, pega el nuevo token modificado reemplazando el valor en el <strong>Local Storage</strong> (F12) y presiona <strong>F5</strong> para refrescar. ¡Listo, rol de administrador obtenido!</li>
+                            </ol>
+                        </div>
+                        <div class="p-4 bg-gray-900 rounded-lg border border-red-500/20 font-terminal text-xs text-red-300 space-y-3">
+                            <span class="text-white font-bold block">// Estructura del JWT en CyberChef:</span>
+                            <div class="p-2 bg-black rounded text-[11px] text-gray-300 space-y-1">
+                                <span class="text-blue-400">Header:</span> {"alg": "none", "typ": "JWT"}<br>
+                                <span class="text-yellow-400">Payload (¡Modificar aquí!):</span><br>
+                                {"id": 2, "email": "aprendiz@sena.edu.co", <span class="text-red-400">"role": "admin"</span>}<br>
+                                <span class="text-purple-400">Signature:</span> (Omitida o anulada con alg: none)
+                            </div>
+                            <p class="text-[11px] text-gray-400 italic">💡 Si el servidor confía en el token sin verificar criptográficamente la firma, aceptará el rol de administrador sin cuestionar.</p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Vector 4: Brute Force -->
+                 <!-- Vector 4: Brute Force -->
+                <div class="p-6 rounded-xl bg-black/90 border border-red-500/40 space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-terminal font-bold text-red-400 text-lg"><i class="fa-solid fa-robot mr-2"></i>Vector D: Fuerza Bruta contra el Login en Entorno Windows</h4>
+                        <span class="text-xs bg-red-950 text-red-300 border border-red-800 px-2.5 py-1 rounded">A07 / Anti-Automation</span>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm font-sans text-gray-300">
+                        <div class="space-y-3">
+                            <p><strong class="text-white">¿Por qué y para qué?:</strong> Explotar formularios de autenticación que carecen de limitación de tasa de peticiones (Rate Limiting) o CAPTCHA en entornos locales de Windows mediante diccionarios automatizados.</p>
+                            <p><strong class="text-white">Cómo ejecutarlo paso a paso en Windows:</strong></p>
+                            <ol class="list-decimal pl-5 space-y-1 text-xs text-gray-300">
+                                <li>Asegúrate de tener configurado tu navegador con <strong>FoxyProxy</strong> apuntando a Burp Suite (<code>127.0.0.1:8080</code>).</li>
+                                <li>En Juice Shop (<code>http://localhost:3000/#/login</code>), introduce un correo de usuario válido (ej. <code>admin@juice-sh.op</code>) y una contraseña errónea cualquiera. Haz clic en <strong>Log in</strong>.</li>
+                                <li>En Burp Suite, ve a la pestaña <strong>Proxy &gt; Intercept</strong>. Verás la petición <code>POST /rest/user/login</code> detenida.</li>
+                                <li>Haz clic derecho sobre la petición interceptada y selecciona <strong>Send to Intruder</strong> (o presiona <code>Ctrl + I</code>).</li>
+                                <li>Ve a la pestaña <strong>Intruder &gt; Positions</strong>. Borra todos los marcadores automáticos y selecciona únicamente el valor de la contraseña dentro del JSON, haciendo clic en el botón <strong>Add §</strong> (ejemplo: <code>"password":"§wrongpassword§"</code>).</li>
+                                <li>Ve a la pestaña <strong>Intruder &gt; Payloads</strong>. En Payload set 1, puedes escribir o cargar un archivo de texto en Windows (como un diccionario de claves comunes con extensión <code>.txt</code>).</li>
+                                <li>Haz clic en el botón superior derecho <strong>Start attack</strong>. Se abrirá una ventana probando miles de claves por segundo contra tu servidor local en Node.js, destacando la clave correcta por la longitud de respuesta HTTP 200 en lugar de 401 Unauthorized.</li>
+                            </ol>
+                        </div>
+                        <div class="p-4 bg-gray-900 rounded-lg border border-red-500/20 font-terminal text-xs text-red-300 space-y-2">
+                            <span class="text-white font-bold block">// Petición HTTP objetivo en Burp Intruder:</span>
+                            <div class="p-2 bg-black rounded text-[11px] text-gray-300">
+                                POST /rest/user/login HTTP/1.1<br>
+                                Host: localhost:3000<br>
+                                Content-Type: application/json<br><br>
+                                {"email":"admin@juice-sh.op","password":"§password123§"}
+                            </div>
+                            <p class="text-[11px] text-gray-400 italic">💡 En entornos reales de producción, esto se mitiga implementando bloqueo por IP tras 3 intentos fallidos y validación CAPTCHA.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 3: FASE 3 - MITIGACIÓN Y PARCHEO        -->
+        <!-- ========================================== -->
+        <section id="tab-defensa" class="space-y-12 hidden animate-fade-in">
+            <div class="p-6 sm:p-8 rounded-xl bg-black/90 border border-green-500/30 space-y-6">
+                <div class="flex items-center gap-3 border-b border-green-500/20 pb-4">
+                    <span class="w-8 h-8 rounded bg-green-500/20 border border-green-500 flex items-center justify-center text-green-400 font-terminal font-bold">F3</span>
+                    <h3 class="text-xl font-bold font-terminal text-white">Fase 3: Mitigación, Parcheo y Código Seguro</h3>
+                </div>
+                
+                <p class="text-sm text-gray-300 font-sans leading-relaxed">
+                    Mitigar significa corregir la causa del problema y comprobar que no vuelva a aparecer. Las herramientas ayudan a encontrar señales, pero la solución se implementa y verifica en el código.
+                </p>
+
+                <div class="p-5 rounded-lg bg-green-950/20 border border-green-500/30 space-y-3 font-sans text-xs text-gray-300">
+                    <h4 class="font-terminal font-bold text-green-300 text-sm">Seguridad durante todo el desarrollo</h4>
+                    <p class="leading-relaxed">No hace falta esperar a que haya un problema para pensar en seguridad. Inclúyela en cada etapa:</p>
+                    <ol class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-2 list-decimal pl-5">
+                        <li><strong class="text-white">Antes de programar:</strong> decide qué datos hay que proteger, quién puede verlos y qué acciones debe permitir la aplicación.</li>
+                        <li><strong class="text-white">Al programar:</strong> usa las herramientas seguras del lenguaje y no guardes contraseñas, tokens o claves dentro del código.</li>
+                        <li><strong class="text-white">Al revisar:</strong> pide a otra persona que revise los cambios y usa analizadores para detectar errores comunes y dependencias desactualizadas.</li>
+                        <li><strong class="text-white">Al probar:</strong> comprueba el caso normal y también los datos incorrectos, usuarios sin permiso y muchos intentos seguidos. Guarda una prueba para que el error no regrese.</li>
+                        <li><strong class="text-white">Al publicar:</strong> activa HTTPS, protege las claves y da a cada servicio solo los permisos que necesita.</li>
+                        <li><strong class="text-white">Después de publicar:</strong> revisa alertas, actualiza dependencias y ten un plan para corregir y comunicar incidentes.</li>
+                    </ol>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 font-sans text-xs">
+                    <!-- Parche SQLi -->
+                    <div class="p-5 rounded-xl bg-gray-900 border border-green-500/30 space-y-3">
+                        <h4 class="font-terminal font-bold text-green-400 text-sm">1. SQL: separar instrucciones y datos</h4>
+                        <div class="p-3 bg-black rounded font-terminal text-green-300 overflow-x-auto space-y-1">
+                            <span class="text-red-400"># INSEGURO:</span> cursor.execute(f"SELECT * FROM users WHERE user='{u}'")<br>
+                            <span class="text-green-400"># SEGURO:</span> cursor.execute("SELECT * FROM users WHERE user = ?", (u,))
+                        </div>
+                        <div class="text-gray-300 space-y-1.5">
+                            <p class="font-bold text-white">En palabras sencillas:</p>
+                            <p>La consulta es la instrucción para la base de datos; el correo o nombre es solo un dato. Los parámetros mantienen esas dos cosas separadas.</p>
+                            <p class="font-bold text-white">Qué hacer:</p>
+                            <ul class="list-disc pl-4 space-y-1">
+                                <li>Usa consultas parametrizadas. Un ORM (herramienta que traduce objetos del programa a consultas de base de datos) suele hacerlo por ti cuando usas sus métodos normales.</li>
+                                <li>El ORM no es magia: evita pegar texto del usuario dentro de SQL manual. Si necesitas SQL manual, usa parámetros.</li>
+                                <li>Valida los datos en el servidor y prueba que una entrada extraña se trate como texto, no como una nueva instrucción.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Parche XSS -->
+                    <div class="p-5 rounded-xl bg-gray-900 border border-green-500/30 space-y-3">
+                        <h4 class="font-terminal font-bold text-green-400 text-sm">2. XSS: mostrar texto como texto</h4>
+                        <div class="p-3 bg-black rounded font-terminal text-green-300 overflow-x-auto space-y-1">
+                            <span class="text-red-400">// INSEGURO:</span> document.getElementById('res').innerHTML = userInput;<br>
+                            <span class="text-green-400">// SEGURO:</span> document.getElementById('res').textContent = userInput;
+                        </div>
+                        <div class="text-gray-300 space-y-1.5">
+                            <p class="font-bold text-white">En palabras sencillas:</p>
+                            <p><code>innerHTML</code> interpreta lo recibido como parte de una página; <code>textContent</code> lo muestra como texto. Para un comentario o una búsqueda, normalmente queremos lo segundo.</p>
+                            <p class="font-bold text-white">Qué hacer:</p>
+                            <ul class="list-disc pl-4 space-y-1">
+                                <li>Inserta texto con APIs seguras. Si la función necesita permitir formato HTML, límpialo con una biblioteca especializada.</li>
+                                <li>Revisa tanto lo que se muestra inmediatamente como comentarios u otros datos guardados y mostrados después.</li>
+                                <li>CSP y las opciones seguras de cookies ayudan a reducir el impacto, pero no sustituyen arreglar la forma insegura de mostrar el contenido.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Parche JWT -->
+                    <div class="p-5 rounded-xl bg-gray-900 border border-green-500/30 space-y-3">
+                        <h4 class="font-terminal font-bold text-green-400 text-sm">3. JWT: comprobar que el pase sea auténtico</h4>
+                        <div class="p-3 bg-black rounded font-terminal text-green-300 overflow-x-auto space-y-1">
+                            <span class="text-red-400"># INSEGURO:</span> jwt.decode(token, options={"verify_signature": False})<br>
+                            <span class="text-green-400"># SEGURO:</span> jwt.decode(token, SECRET_KEY, algorithms=["HS256"])
+                        </div>
+                        <div class="text-gray-300 space-y-1.5">
+                            <p class="font-bold text-white">En palabras sencillas:</p>
+                            <p>Un JWT se parece a un pase firmado. Leer lo que dice no demuestra que sea auténtico: el servidor debe revisar la firma antes de confiar en su contenido.</p>
+                            <p class="font-bold text-white">Qué hacer:</p>
+                            <ul class="list-disc pl-4 space-y-1">
+                                <li>El servidor decide qué tipo de firma acepta y verifica que coincida; no debe obedecer solo lo que el token declara.</li>
+                                <li>Comprueba que el pase no haya vencido y que fue emitido para esta aplicación y este servicio.</li>
+                                <li>Guarda la clave de firma fuera del código. No pongas contraseñas ni secretos en el contenido del JWT: se puede leer.</li>
+                                <li>Prueba que el sistema rechace pases vencidos, alterados o destinados a otro servicio.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Parche Brute Force -->
+                    <div class="p-5 rounded-xl bg-gray-900 border border-green-500/30 space-y-3">
+                        <h4 class="font-terminal font-bold text-green-400 text-sm">4. Inicio de sesión: frenar intentos repetidos</h4>
+                        <div class="p-3 bg-black rounded font-terminal text-green-300 overflow-x-auto space-y-1">
+                            <span class="text-green-400">// Ejemplo con Express Rate Limit:</span><br>
+                            const limiter = rateLimit({ windowMs: 15*60*1000, max: 5 });<br>
+                            app.use('/rest/user/login', limiter);
+                        </div>
+                        <div class="text-gray-300 space-y-1.5">
+                            <p class="font-bold text-white">En palabras sencillas:</p>
+                            <p>El límite de intentos pone una pausa cuando alguien prueba muchas contraseñas. Es como pedir que esperen antes de volver a intentar.</p>
+                            <p class="font-bold text-white">Qué hacer:</p>
+                            <ul class="list-disc pl-4 space-y-1">
+                                <li>Cuenta intentos por cuenta y por origen de conexión. Si la aplicación tiene varios servidores, deben compartir ese contador.</li>
+                                <li>Usa pausas cada vez mayores y mensajes que no confirmen si el usuario existe.</li>
+                                <li>No bloquees para siempre ni dependas solo de la dirección IP; podrías impedir el acceso a personas legítimas.</li>
+                                <li>Activa verificación en dos pasos cuando sea posible y revisa alertas de muchos intentos fallidos.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 4: TERMINAL SANDBOX                   -->
+        <!-- ========================================== -->
+        <section id="tab-sandbox" class="space-y-6 hidden animate-fade-in">
+            <div class="p-6 sm:p-8 rounded-xl bg-black border border-green-500/40 neon-box space-y-4">
+                <div class="flex items-center justify-between border-b border-green-500/30 pb-4">
+                    <div class="flex items-center gap-2">
+                        <div class="w-3 h-3 rounded-full bg-red-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-yellow-500"></div>
+                        <div class="w-3 h-3 rounded-full bg-green-500"></div>
+                        <span class="ml-2 text-xs font-terminal text-green-400">cgmlti@security-terminal:~#</span>
+                    </div>
+                    <span class="text-xs font-terminal text-gray-400">Windows Environment / Python 3.14</span>
+                </div>
+
+                <!-- Console Output Window -->
+                <div id="terminal-output" class="font-terminal text-xs sm:text-sm text-green-400 bg-gray-950 p-4 rounded-lg h-72 overflow-y-auto border border-green-500/20 space-y-2">
+                    <div>[INFO] Sistema Operativo de Prácticas CGMLTI inicializado.</div>
+                    <div>[INFO] Entorno Windows configurado: Python 3.14 + Node.js + Burp Suite activo.</div>
+                    <div>[INFO] Escribe <span class="text-white bg-green-900 px-1 rounded">help</span> para ver los comandos disponibles.</div>
+                </div>
+
+                <!-- Input Prompt -->
+                <div class="flex items-center gap-2 bg-gray-900 p-2 rounded-lg border border-green-500/40">
+                    <span class="text-green-400 font-terminal font-bold">&gt;</span>
+                    <input type="text" id="terminal-input" onkeypress="handleTerminalInput(event)" placeholder="Escribe un comando (ej. nmap -sV localhost, semgrep --config=auto)..." class="flex-1 bg-transparent border-none text-white font-terminal text-xs sm:text-sm focus:outline-none">
+                    <button onclick="executeCommand()" class="px-4 py-1.5 bg-green-600 hover:bg-green-500 text-black font-terminal text-xs font-bold rounded transition-all">Ejecutar</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-20 border-t border-green-500/30 bg-black py-6 text-center font-terminal text-xs text-gray-400">
+        <p>Operación CGMLTI: El Desafío de la Sombra // Ficha ADSO &bull; SENA CGMLTI &copy; 2026</p>
+    </footer>
+
+    <!-- JavaScript Interactive Logic -->
+    <script>
+        function switchTab(tabId) {
+            ['contexto', 'lab', 'ataque', 'defensa', 'sandbox'].forEach(id => {
+                const tabEl = document.getElementById(`tab-${id}`);
+                if (tabEl) tabEl.classList.add('hidden');
+                const navBtn = document.getElementById(`nav-${id}`);
+                if (navBtn) {
+                    navBtn.className = "px-3 py-2 rounded text-gray-400 hover:text-green-400 border border-transparent transition-all";
+                }
+            });
+
+            const activeTab = document.getElementById(`tab-${tabId}`);
+            if (activeTab) activeTab.classList.remove('hidden');
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            if (activeBtn) {
+                activeBtn.className = "px-3 py-2 rounded text-green-400 bg-green-950/40 border border-green-500/50 transition-all neon-box";
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            if (menu) menu.classList.toggle('hidden');
+        }
+
+        function handleTerminalInput(e) {
+            if (e.key === 'Enter') {
+                executeCommand();
+            }
+        }
+
+        function executeCommand() {
+            const inputEl = document.getElementById('terminal-input');
+            const outputEl = document.getElementById('terminal-output');
+            if (!inputEl || !outputEl) return;
+            const cmd = inputEl.value.trim();
+            if (!cmd) return;
+
+            outputEl.innerHTML += `<div class="text-white">&gt; ${escapeHtml(cmd)}</div>`;
+            inputEl.value = '';
+
+            let response = "";
+            const lowerCmd = cmd.toLowerCase();
+
+            if (lowerCmd === 'help') {
+                response = `Comandos disponibles:<br>
+                - <strong>nmap -sV localhost</strong> : Escaneo de puertos y versiones (Banners).<br>
+                - <strong>semgrep --config=auto</strong> : Ejecuta análisis estático SAST.<br>
+                - <strong>npm start</strong> : Inicia OWASP Juice Shop en local.<br>
+                - <strong>python --version</strong> : Verifica entorno Python 3.14.<br>
+                - <strong>clear</strong> : Limpia la terminal.`;
+            } else if (lowerCmd.includes('nmap')) {
+                response = `Starting Nmap 7.993 ( https://nmap.org )<br>
+                Nmap scan report for localhost (127.0.0.1)<br>
+                PORT     STATE SERVICE VERSION<br>
+                3000/tcp open  ppp?    Node.js Express framework (OWASP Juice Shop)<br>
+                Nmap done: 1 IP address scanned in 0.73 seconds.`;
+            } else if (lowerCmd.includes('semgrep')) {
+                response = `[SAST] Ejecutando Semgrep en directorio actual...<br>
+                <span class="text-yellow-400">[WARNING] A03: SQL Injection detectado en app.py (Línea 42)</span><br>
+                <span class="text-red-400">[CRITICAL] A03: XSS Reflected detectado en search.js (Línea 18)</span><br>
+                Escaneo finalizado. 2 vulnerabilidades encontradas.`;
+            } else if (lowerCmd.includes('npm start')) {
+                response = `[DAST] Iniciando OWASP Juice Shop en puerto 3000 (Windows Node.js)...<br>
+                [SUCCESS] Aplicación lista en http://localhost:3000`;
+            } else if (lowerCmd.includes('python')) {
+                response = `Python 3.14.0 (CGMLTI Windows Build)`;
+            } else if (lowerCmd === 'clear') {
+                outputEl.innerHTML = '';
+                return;
+            } else {
+                response = `Comando no reconocido: '${escapeHtml(cmd)}'. Escribe 'help' para ver la lista de comandos.`;
+            }
+
+            outputEl.innerHTML += `<div>${response}</div>`;
+            outputEl.scrollTop = outputEl.scrollHeight;
+        }
+
+        function escapeHtml(text) {
+            return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        }
+    </script>
+</body>
+</html>
